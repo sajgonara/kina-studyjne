@@ -440,13 +440,13 @@ const KINA = [
   "lng": 18.2509361,
   "website": "https://kckkonin.pl/kino-centrum/",
   "repertuarUrl": "https://kckkonin.bilety24.pl/",
-  "priceNormal": 20,
-  "priceDiscount": 18,
-  "priceMin": null,
-  "priceNote": "Szacunek — KCK nie publikuje cennika (agregatory: 20–22 zł)",
+  "priceNormal": 22,
+  "priceDiscount": 20,
+  "priceMin": 15,
+  "priceNote": "Tanie poniedziałki i tanie środy 15 zł; filmy familijne 15 zł; Karta Mieszkańca −2 zł; Karta Rodzina 3+ −50%",
   "screens": 1,
   "showsPerDay": 2,
-  "verified": false
+  "verified": true
  },
  {
   "name": "Kino Oskard",
@@ -506,8 +506,8 @@ const KINA = [
   "repertuarUrl": "https://kijow.pl/cennik/",
   "priceNormal": 29,
   "priceDiscount": 25,
-  "priceMin": 21,
-  "priceNote": "Poniedziałek: wszystkie bilety 21 zł; senior 20 zł codziennie; mniejsze sale tańsze (23–28 zł)",
+  "priceMin": 20,
+  "priceNote": "Poniedziałek: wszystkie bilety 21 zł; senior 20 zł codziennie; Sala Klubowa 21 zł; mniejsze sale 23–28 zł; weekend duża sala 30 zł",
   "screens": 4,
   "showsPerDay": null,
   "verified": true
@@ -573,7 +573,7 @@ const KINA = [
   "priceMin": 22.9,
   "priceNote": "Poniedziałek: bilety 22,90 zł; senior 23 zł; weekend normalny 31 zł",
   "screens": 3,
-  "showsPerDay": 21,
+  "showsPerDay": 22,
   "verified": true
  },
  {
@@ -586,8 +586,8 @@ const KINA = [
   "repertuarUrl": "https://kinosfinks.okn.edu.pl/strona-3388-cennik.html",
   "priceNormal": 25,
   "priceDiscount": 20,
-  "priceMin": 19,
-  "priceNote": "Tani wtorek 19 zł; weekend 27/21 zł; seanse 'Mały Metraż' 21/18 zł",
+  "priceMin": 17,
+  "priceNote": "Tani wtorek 19 zł (Mały Metraż 17 zł); weekend 27/21 zł; seanse 'Mały Metraż' 21/18 zł; Klub Seniora 17 zł, DKF Kropka 19 zł, Dziecięcy DKF 12 zł",
   "screens": 2,
   "showsPerDay": null,
   "verified": true
