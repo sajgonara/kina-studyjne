@@ -1585,3 +1585,4 @@ const KINA = [
   "verified": false
  }
 ];
+const KINA_UPDATED = "2026-07-29";

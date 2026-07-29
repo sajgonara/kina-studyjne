@@ -77,7 +77,7 @@ footer a{color:var(--accent)}
   <div id="list"></div>
   <div id="map"></div>
 </div>
-<footer>Dane zebrane ręcznie (lipiec 2026) ze stron kin — ceny mogą się zmieniać, sprawdź na stronie kina. Źródło listy: Sieć Kin Studyjnych / Stowarzyszenie Kin Studyjnych. <a href="https://github.com/sajgonara/kina-studyjne" target="_blank">GitHub</a></footer>
+<footer><span id="updated">Dane zebrane ze stron kin</span> — ceny mogą się zmieniać, sprawdź na stronie kina. Źródło listy: Sieć Kin Studyjnych / Stowarzyszenie Kin Studyjnych. <a href="https://github.com/sajgonara/kina-studyjne" target="_blank">GitHub</a></footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="data.js"></script>
 <script>
@@ -161,6 +161,7 @@ function render(){
 sortEl.addEventListener('change',render);
 cityEl.addEventListener('change',render);
 searchEl.addEventListener('input',render);
+if(typeof KINA_UPDATED!=='undefined') document.getElementById('updated').textContent=`Dane ze stron kin, aktualizacja: ${KINA_UPDATED}`;
 render();
 </script>
 </body>
