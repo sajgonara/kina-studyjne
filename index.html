@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Kina Studyjne w Polsce — mapa i ceny biletów</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -12,7 +12,7 @@
   --accent:#e6b34c; --accent2:#7fb069; --border:#38322d; --chip:#2e2a26;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
 header{padding:14px 20px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 header h1{font-size:1.15rem;font-weight:700}
 header h1 span{color:var(--accent)}
@@ -68,7 +68,8 @@ footer a{color:var(--accent)}
   #applyFilters{display:block;padding:10px;border:0;border-radius:8px;
                 background:var(--accent);color:#1a1206;font-weight:700;font-size:.95rem}
   footer{display:none}
-  #tabs{display:flex;background:var(--panel);border-top:1px solid var(--border)}
+  #tabs{display:flex;background:var(--panel);border-top:1px solid var(--border);
+        padding-bottom:env(safe-area-inset-bottom,0px)}
   #tabs button{flex:1;padding:12px 4px;background:none;border:0;border-top:2px solid transparent;
                color:var(--muted);font-size:.9rem;cursor:pointer;font-family:inherit}
   #tabs button.on{color:var(--accent);font-weight:700;border-top-color:var(--accent)}
