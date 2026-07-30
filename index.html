@@ -40,17 +40,38 @@ select:focus,input:focus{border-color:var(--accent)}
 .card .links a:hover{text-decoration:underline}
 .unverified{opacity:.75}
 .badge{font-size:.65rem;border:1px solid var(--border);border-radius:4px;padding:1px 4px;color:var(--muted);vertical-align:middle}
+.badge.sks{color:var(--accent);border-color:var(--accent)}
 #stats{padding:6px 12px;font-size:.75rem;color:var(--muted)}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel2);color:var(--text)}
 .leaflet-popup-content a{color:var(--accent)}
 .leaflet-container{background:#0d0c0a}
 footer{padding:6px 20px;background:var(--panel);border-top:1px solid var(--border);font-size:.7rem;color:var(--muted)}
 footer a{color:var(--accent)}
+#tabs{display:none}
+#applyFilters{display:none}
+#filters{display:contents}
 @media(max-width:800px){
-  #main{flex-direction:column}
-  #list{width:100%;min-width:0;height:45%;order:2;border-right:none;border-top:1px solid var(--border)}
-  #map{height:55%;order:1}
-  input[type=text]{width:130px}
+  header{padding:10px 12px}
+  header .sub{display:none}
+  #controls{margin-left:0;width:100%}
+  input[type=text]{width:100%;font-size:1rem}
+  /* mobilne widoki: lista albo mapa na całą wysokość, przełączane dolnym paskiem */
+  #main{position:relative}
+  #list,#map{position:absolute;inset:0;width:100%;height:100%;min-width:0;border:0;display:none}
+  #main.view-list #list{display:block}
+  #main.view-map #map{display:block}
+  /* filtry jako rozwijany panel (zakładka „Filtry”) */
+  #filters{display:none;flex-direction:column;align-items:stretch;gap:8px;width:100%;
+           background:var(--panel);border-bottom:1px solid var(--border);padding:10px 12px}
+  #filters select{width:100%}
+  body.filters-open #filters{display:flex}
+  #applyFilters{display:block;padding:10px;border:0;border-radius:8px;
+                background:var(--accent);color:#1a1206;font-weight:700;font-size:.95rem}
+  footer{display:none}
+  #tabs{display:flex;background:var(--panel);border-top:1px solid var(--border)}
+  #tabs button{flex:1;padding:12px 4px;background:none;border:0;border-top:2px solid transparent;
+               color:var(--muted);font-size:.9rem;cursor:pointer;font-family:inherit}
+  #tabs button.on{color:var(--accent);font-weight:700;border-top-color:var(--accent)}
 }
 </style>
 </head>
@@ -58,18 +79,26 @@ footer a{color:var(--accent)}
 <header>
   <div>
     <h1>🎬 Kina <span>Studyjne</span> w Polsce</h1>
-    <div class="sub">Sieć Kin Studyjnych — mapa, ceny biletów, seanse</div>
+    <div class="sub">Kina studyjne, artystyczne i lokalne — mapa, ceny biletów, seanse</div>
   </div>
   <div id="controls">
     <input type="text" id="search" placeholder="Szukaj kina lub miasta…">
-    <select id="sort">
-      <option value="priceMin">💰 Najtańszy bilet</option>
-      <option value="priceNormal">🎟️ Bilet normalny</option>
-      <option value="shows">🕐 Najwięcej seansów</option>
-      <option value="city">🏙️ Miasto A–Z</option>
-      <option value="name">🔤 Nazwa A–Z</option>
-    </select>
-    <select id="cityFilter"><option value="">Wszystkie miasta</option></select>
+    <div id="filters">
+      <select id="sort">
+        <option value="priceMin">💰 Najtańszy bilet</option>
+        <option value="priceNormal">🎟️ Bilet normalny</option>
+        <option value="shows">🕐 Najwięcej seansów</option>
+        <option value="city">🏙️ Miasto A–Z</option>
+        <option value="name">🔤 Nazwa A–Z</option>
+      </select>
+      <select id="wojFilter"><option value="">Cała Polska</option></select>
+      <select id="cityFilter"><option value="">Wszystkie miasta</option></select>
+      <select id="sksFilter">
+        <option value="">Wszystkie kina</option>
+        <option value="1">⭐ Tylko Sieć Kin Studyjnych</option>
+      </select>
+      <button id="applyFilters">✓ Pokaż wyniki</button>
+    </div>
   </div>
 </header>
 <div id="stats"></div>
@@ -77,7 +106,14 @@ footer a{color:var(--accent)}
   <div id="list"></div>
   <div id="map"></div>
 </div>
-<footer><span id="updated">Dane zebrane ze stron kin</span> — ceny mogą się zmieniać, sprawdź na stronie kina. Źródło listy: Sieć Kin Studyjnych / Stowarzyszenie Kin Studyjnych. <a href="https://github.com/sajgonara/kina-studyjne" target="_blank">GitHub</a></footer>
+<footer><span id="updated">Dane zebrane ze stron kin</span> — ceny mogą się zmieniać, sprawdź na stronie kina.
+<span style="color:#e6b34c">⭐ złote punkty</span> = Sieć Kin Studyjnych, <span style="color:#7f8fa0">szare</span> = pozostałe kina lokalne i artystyczne.
+Źródła: Sieć Kin Studyjnych, OpenStreetMap, strony kin i ośrodków kultury. <a href="https://github.com/sajgonara/kina-studyjne" target="_blank">GitHub</a></footer>
+<nav id="tabs">
+  <button data-v="list" class="on">📋 Lista</button>
+  <button data-v="map">🗺️ Mapa</button>
+  <button data-v="filters">🎛️ Filtry</button>
+</nav>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="data.js"></script>
 <script>
@@ -90,27 +126,58 @@ const markers = {};
 const listEl = document.getElementById('list');
 const sortEl = document.getElementById('sort');
 const cityEl = document.getElementById('cityFilter');
+const wojEl = document.getElementById('wojFilter');
+const sksEl = document.getElementById('sksFilter');
 const searchEl = document.getElementById('search');
 const statsEl = document.getElementById('stats');
+const mainEl = document.getElementById('main');
+
+// mobilne widoki lista/mapa/filtry + mądre przejścia między nimi
+const isMobile = () => window.matchMedia('(max-width:800px)').matches;
+function setView(v){
+  mainEl.className = 'view-' + v;
+  document.body.classList.toggle('filters-open', v === 'filters');
+  document.querySelectorAll('#tabs button').forEach(b =>
+    b.classList.toggle('on', b.dataset.v === v));
+  if (v === 'map') setTimeout(() => map.invalidateSize(), 60);
+}
+window.goList = i => { setView('list'); highlight(i, false); };
+document.querySelectorAll('#tabs button').forEach(b =>
+  b.addEventListener('click', () => setView(b.dataset.v)));
+document.getElementById('applyFilters').addEventListener('click', () => setView('list'));
 
 const fmt = v => v == null ? '—' : v.toFixed(2).replace(/\.00$/,'').replace('.',',') + ' zł';
 const effMin = k => k.priceMin ?? k.priceDiscount ?? k.priceNormal;
 
-// city filter options
-[...new Set(KINA.map(k=>k.city))].sort((a,b)=>a.localeCompare(b,'pl')).forEach(c=>{
-  const o=document.createElement('option'); o.value=c; o.textContent=c; cityEl.appendChild(o);
+// voivodeship filter options
+[...new Set(KINA.map(k=>k.woj).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pl')).forEach(w=>{
+  const o=document.createElement('option'); o.value=w; o.textContent=w; wojEl.appendChild(o);
 });
+
+// city filter options — zawężane do wybranego województwa
+function fillCities(){
+  const woj=wojEl.value, prev=cityEl.value;
+  cityEl.innerHTML='<option value="">Wszystkie miasta</option>';
+  [...new Set(KINA.filter(k=>!woj||k.woj===woj).map(k=>k.city))]
+    .sort((a,b)=>a.localeCompare(b,'pl')).forEach(c=>{
+      const o=document.createElement('option'); o.value=c; o.textContent=c; cityEl.appendChild(o);
+    });
+  cityEl.value=[...cityEl.options].some(o=>o.value===prev)?prev:'';
+}
+fillCities();
 
 // markers
 KINA.forEach((k,i)=>{
   if(k.lat==null||k.lng==null) return;
-  const m=L.circleMarker([k.lat,k.lng],{radius:7,color:'#e6b34c',weight:1.5,fillColor:'#e6b34c',fillOpacity:.55});
-  m.bindPopup(`<b>${k.name}</b><br>${k.city}${k.address?', '+k.address:''}<br>
+  const col=k.sks?'#e6b34c':'#7f8fa0';
+  const m=L.circleMarker([k.lat,k.lng],{radius:k.sks?7:5,color:col,weight:1.5,fillColor:col,fillOpacity:.55});
+  m.bindPopup(`<b>${k.name}</b>${k.sks?' ⭐':''}<br>${k.city}${k.address?', '+k.address:''}${k.woj?'<br><i style="font-size:.85em">woj. '+k.woj+'</i>':''}<br>
     Normalny: <b>${fmt(k.priceNormal)}</b> · Ulgowy: <b>${fmt(k.priceDiscount)}</b>
     ${k.priceMin!=null?`<br>Najtaniej: <b style="color:#7fb069">${fmt(k.priceMin)}</b>`:''}
     ${k.priceNote?`<br><i style="font-size:.85em">${k.priceNote}</i>`:''}
     ${k.website?`<br><a href="${k.website}" target="_blank">strona</a>`:''}
-    ${k.repertuarUrl?` · <a href="${k.repertuarUrl}" target="_blank">repertuar</a>`:''}`);
+    ${k.repertuarUrl?` · <a href="${k.repertuarUrl}" target="_blank">repertuar</a>`:''}
+    <br><a href="#" onclick="goList(${i});return false">📋 pokaż na liście</a>`);
   m.on('click',()=>highlight(i,false));
   m.addTo(map); markers[i]=m;
 });
@@ -126,10 +193,15 @@ function highlight(i,pan=true){
 function render(){
   const q=searchEl.value.trim().toLowerCase();
   const city=cityEl.value;
+  const woj=wojEl.value;
+  const sks=sksEl.value;
   const sort=sortEl.value;
   let items=KINA.map((k,i)=>({k,i}))
+    .filter(({k})=>!woj||k.woj===woj)
     .filter(({k})=>!city||k.city===city)
-    .filter(({k})=>!q||k.name.toLowerCase().includes(q)||k.city.toLowerCase().includes(q));
+    .filter(({k})=>!sks||k.sks)
+    .filter(({k})=>!q||k.name.toLowerCase().includes(q)||k.city.toLowerCase().includes(q)
+                   ||(k.woj||'').toLowerCase().includes(q));
   const val={priceMin:({k})=>effMin(k)??Infinity,
              priceNormal:({k})=>k.priceNormal??Infinity,
              shows:({k})=>-(k.showsPerDay??-1)};
@@ -137,9 +209,16 @@ function render(){
   else if(sort==='name') items.sort((a,b)=>a.k.name.localeCompare(b.k.name,'pl'));
   else items.sort((a,b)=>val[sort](a)-val[sort](b));
 
+  const shown=new Set(items.map(({i})=>i));
+  Object.entries(markers).forEach(([i,m])=>{
+    const on=shown.has(+i);
+    if(on&&!map.hasLayer(m)) m.addTo(map);
+    else if(!on&&map.hasLayer(m)) map.removeLayer(m);
+  });
+
   listEl.innerHTML=items.map(({k,i})=>`
     <div class="card ${k.verified?'':'unverified'}" data-i="${i}">
-      <div class="top"><span class="name">${k.name} ${k.verified?'':'<span class="badge" title="cena szacunkowa / nie potwierdzona na stronie kina">~cena</span>'}</span><span class="city">${k.city}</span></div>
+      <div class="top"><span class="name">${k.name} ${k.sks?'<span class="badge sks" title="należy do Sieci Kin Studyjnych">⭐ SKS</span>':''} ${k.verified?'':'<span class="badge" title="cena szacunkowa / nie potwierdzona na stronie kina">~cena</span>'}</span><span class="city">${k.city}</span></div>
       <div class="prices">
         <span class="chip min">od <b>${fmt(effMin(k))}</b></span>
         <span class="chip">norm. <b>${fmt(k.priceNormal)}</b></span>
@@ -153,15 +232,27 @@ function render(){
         ${k.repertuarUrl?`<a href="${k.repertuarUrl}" target="_blank">📅 repertuar</a>`:''}
       </div>
     </div>`).join('');
-  document.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>highlight(+c.dataset.i)));
+  document.querySelectorAll('.card').forEach(c=>c.addEventListener('click',()=>{
+    highlight(+c.dataset.i);
+    if(isMobile()) setView('map');  // dotknięcie kina na liście -> mapa z pinezką
+  }));
   const withPrice=items.filter(({k})=>effMin(k)!=null);
   const avg=withPrice.length?withPrice.reduce((s,{k})=>s+effMin(k),0)/withPrice.length:0;
-  statsEl.textContent=`${items.length} kin` + (withPrice.length?` · średnia cena „od": ${avg.toFixed(2).replace('.',',')} zł · najtaniej: ${fmt(Math.min(...withPrice.map(({k})=>effMin(k))))}`:'');
+  const miast=new Set(items.map(({k})=>k.city)).size;
+  statsEl.textContent=`${items.length} kin w ${miast} miejscowościach`
+    + (withPrice.length?` · średnia cena „od": ${avg.toFixed(2).replace('.',',')} zł · najtaniej: ${fmt(Math.min(...withPrice.map(({k})=>effMin(k))))}`:'')
+    + ` · ${items.length-withPrice.length} bez cennika`;
 }
 sortEl.addEventListener('change',render);
 cityEl.addEventListener('change',render);
-searchEl.addEventListener('input',render);
+sksEl.addEventListener('change',render);
+wojEl.addEventListener('change',()=>{fillCities();render();});
+searchEl.addEventListener('input',()=>{
+  if(isMobile()) setView('list');  // pisanie w szukajce -> od razu wyniki na liście
+  render();
+});
 if(typeof KINA_UPDATED!=='undefined') document.getElementById('updated').textContent=`Dane ze stron kin, aktualizacja: ${KINA_UPDATED}`;
+setView('list');  // mobile: start od listy (na desktopie klasy view-* są ignorowane)
 render();
 </script>
 </body>
